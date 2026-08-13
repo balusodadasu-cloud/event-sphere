@@ -82,6 +82,11 @@ app.use('/api/gallery', galleryRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/users', userRoutes);
 
+// Root route
+app.get('/', (req, res) => {
+    res.json({ success: true, message: 'EventSphere Backend API is running' });
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
     res.json({ success: true, message: 'Campus Connect API is running' });
