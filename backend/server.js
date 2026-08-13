@@ -1,4 +1,16 @@
 require('dotenv').config();
+
+// Catch silent crashes
+process.on('uncaughtException', (err) => {
+    console.error('❌ UNCAUGHT EXCEPTION:', err.message, err.stack);
+});
+process.on('unhandledRejection', (reason) => {
+    console.error('❌ UNHANDLED REJECTION:', reason);
+});
+
+console.log('🚀 Starting EventSphere server...');
+console.log('📦 NODE_ENV:', process.env.NODE_ENV);
+console.log('🔌 PORT:', process.env.PORT);
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -84,11 +96,17 @@ app.use((req, res, next) => {
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
+console.log(`🔌 About to listen on PORT: ${PORT}`);
 
-// Always listen — required for Render and traditional servers
-// (Vercel serverless uses module.exports = app instead of listen)
-app.listen(PORT, () => {
+// Always listen — Render requires explicit port binding on 0.0.0.0
+const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ Server running on port ${PORT}`);
+    console.log(`✅ Listening on 0.0.0.0:${PORT}`);
+});
+
+server.on('error', (err) => {
+    console.error('❌ Server listen error:', err.message);
+    process.exit(1);
 });
 
 // Export for serverless environments (Vercel)
