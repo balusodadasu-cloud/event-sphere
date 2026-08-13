@@ -1,4 +1,6 @@
 const Event = require('../models/Event');
+const Club = require('../models/Club');
+const User = require('../models/User');
 const { uploadImage } = require('../config/cloudinary');
 
 exports.getEvents = async (req, res, next) => {

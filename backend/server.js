@@ -19,6 +19,18 @@ const path = require('path');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
 
+// Pre-register all Mongoose models
+require('./models/User');
+require('./models/Club');
+require('./models/Event');
+require('./models/Registration');
+require('./models/Notification');
+require('./models/Certificate');
+require('./models/Result');
+require('./models/Gallery');
+require('./models/Bookmark');
+require('./models/Attendance');
+
 // Route files
 const authRoutes = require('./routes/authRoutes');
 const eventRoutes = require('./routes/eventRoutes');
