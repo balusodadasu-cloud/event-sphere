@@ -5,48 +5,44 @@ const { uploadImage } = require('../config/cloudinary');
 
 exports.getEvents = async (req, res, next) => {
     try {
-        let query;
+        const { search, category, department, status, sort, page = 1, limit = 20 } = req.query;
 
-        const reqQuery = { ...req.query };
-        const removeFields = ['select', 'sort', 'page', 'limit', 'search'];
-        removeFields.forEach(param => delete reqQuery[param]);
+        let filter = {};
 
-        let queryStr = JSON.stringify(reqQuery);
-        queryStr = queryStr.replace(/\b(gt|gte|lt|lte|in)\b/g, match => `$${match}`);
-        
-        query = Event.find(JSON.parse(queryStr)).populate('club organizer', 'name email');
+        if (category && category !== 'All Categories') filter.category = category;
+        if (department && department !== 'All Departments') filter.department = department;
+        if (status && status !== 'All Statuses') filter.status = status;
 
-        if (req.query.search) {
-            query = query.find({
-                $or: [
-                    { title: { $regex: req.query.search, $options: 'i' } },
-                    { description: { $regex: req.query.search, $options: 'i' } }
-                ]
-            });
+        if (search) {
+            filter.$or = [
+                { title: { $regex: search, $options: 'i' } },
+                { description: { $regex: search, $options: 'i' } }
+            ];
         }
 
-        if (req.query.sort) {
-            const sortBy = req.query.sort.split(',').join(' ');
-            query = query.sort(sortBy);
-        } else {
-            query = query.sort('-createdAt');
+        const skip = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+        const limitNum = parseInt(limit, 10);
+
+        let sortOption = { createdAt: -1 };
+        if (sort) {
+            const sortField = sort.startsWith('-') ? sort.substring(1) : sort;
+            const sortOrder = sort.startsWith('-') ? -1 : 1;
+            sortOption = { [sortField]: sortOrder };
         }
 
-        const page = parseInt(req.query.page, 10) || 1;
-        const limit = parseInt(req.query.limit, 10) || 10;
-        const startIndex = (page - 1) * limit;
-        const endIndex = page * limit;
-        const total = await Event.countDocuments(query);
+        const total = await Event.countDocuments(filter);
+        const events = await Event.find(filter)
+            .populate('club organizer', 'name email department logo')
+            .sort(sortOption)
+            .skip(skip)
+            .limit(limitNum);
 
-        query = query.skip(startIndex).limit(limit);
-
-        const events = await query;
-
-        const pagination = {};
-        if (endIndex < total) pagination.next = { page: page + 1, limit };
-        if (startIndex > 0) pagination.prev = { page: page - 1, limit };
-
-        res.status(200).json({ success: true, count: events.length, pagination, data: events });
+        res.status(200).json({
+            success: true,
+            count: events.length,
+            total,
+            data: events
+        });
     } catch (error) {
         next(error);
     }
