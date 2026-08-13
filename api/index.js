@@ -1,5 +1,5 @@
-// Vercel Serverless Function entry point
-// This file connects Vercel's serverless runtime to our Express backend
+// Vercel Serverless Function — EventSphere Backend Entry Point
+// Root package.json has all dependencies, so module resolution works correctly.
 
 const app = require('../backend/server.js');
 
