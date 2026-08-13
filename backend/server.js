@@ -85,11 +85,12 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
-    });
-}
+// Always listen — required for Render and traditional servers
+// (Vercel serverless uses module.exports = app instead of listen)
+app.listen(PORT, () => {
+    console.log(`✅ Server running on port ${PORT}`);
+});
 
-// Export for Vercel Serverless
+// Export for serverless environments (Vercel)
 module.exports = app;
+
