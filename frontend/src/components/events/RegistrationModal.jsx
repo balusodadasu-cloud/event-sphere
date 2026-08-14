@@ -16,8 +16,15 @@ export default function RegistrationModal({ event, isOpen, onClose, onSuccess })
     setTimeout(() => {
       setLoading(false);
       onClose();
-      if (onSuccess) onSuccess();
-      else navigate('/registration-success', { state: { registration: { event: event.title, teamName } } });
+      const mockRegistration = {
+          event: { title: event.title, date: event.date, time: event.time, venue: event.venue },
+          studentName: '',
+          teamName,
+          registrationId: `REG-${Date.now()}`,
+          qrCode: null,
+        };
+        if (onSuccess) onSuccess(mockRegistration);
+        else navigate('/registration-success', { state: { registration: mockRegistration } });
     }, 1000);
   };
 

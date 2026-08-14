@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Lock, Save, Loader2, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import * as authService from '../../services/authService';
 
 const ProfilePage = () => {
-  const { user, login } = useAuth(); // Assuming login updates user context
+  const { user, updateUser } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
@@ -13,9 +13,22 @@ const ProfilePage = () => {
     name: user?.name || '',
     phone: user?.phone || '',
     department: user?.department || '',
-    year: user?.year || '',
+    year: user?.year?.toString() || '',
     bio: user?.bio || ''
   });
+
+  // Re-sync form when user loads asynchronously from getMe
+  useEffect(() => {
+    if (user) {
+      setProfileData({
+        name: user.name || '',
+        phone: user.phone || '',
+        department: user.department || '',
+        year: user.year?.toString() || '',
+        bio: user.bio || '',
+      });
+    }
+  }, [user]);
 
   const [passData, setPassData] = useState({
     currentPassword: '',
@@ -32,12 +45,12 @@ const ProfilePage = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Assuming endpoint exists or handling via authService
-      // Mocking update for context update demo:
-      // const res = await authService.updateProfile(profileData);
+      const res = await authService.updateProfile(profileData);
+      const updatedUser = res.data || res;
+      updateUser(updatedUser);
       showToast('Profile updated successfully!');
     } catch (err) {
-      showToast('Error updating profile');
+      showToast(err?.response?.data?.message || 'Error updating profile');
     } finally {
       setLoading(false);
     }
@@ -45,17 +58,19 @@ const ProfilePage = () => {
 
   const handlePassSubmit = async (e) => {
     e.preventDefault();
-    if(passData.newPassword !== passData.confirmPassword) {
+    if (passData.newPassword !== passData.confirmPassword) {
       return showToast('New passwords do not match');
     }
     setLoading(true);
     try {
-      // Mock update
-      // await authService.changePassword(passData);
+      await authService.changePassword({
+        currentPassword: passData.currentPassword,
+        newPassword: passData.newPassword,
+      });
       showToast('Password changed successfully!');
-      setPassData({currentPassword: '', newPassword: '', confirmPassword: ''});
+      setPassData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (err) {
-      showToast('Error changing password');
+      showToast(err?.response?.data?.message || 'Error changing password');
     } finally {
       setLoading(false);
     }

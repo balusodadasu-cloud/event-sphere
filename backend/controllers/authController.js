@@ -85,11 +85,11 @@ exports.logout = async (req, res, next) => {
 
 exports.updateProfile = async (req, res, next) => {
     try {
-        const { name, phone, bio, profileImage } = req.body;
+        const { name, phone, bio, profileImage, department, year } = req.body;
         
         const user = await User.findByIdAndUpdate(
             req.user.id,
-            { name, phone, bio, profileImage },
+            { name, phone, bio, profileImage, department, year },
             { new: true, runValidators: true }
         );
 

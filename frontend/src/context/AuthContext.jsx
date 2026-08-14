@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
             if (state.token) {
                 try {
                     const data = await getMe();
-                    dispatch({ type: 'LOGIN', payload: { user: data.user || data, token: state.token } });
+                    dispatch({ type: 'LOGIN', payload: { user: data.data || data.user || data, token: state.token } });
                 } catch (error) {
                     localStorage.removeItem('token');
                     dispatch({ type: 'LOGOUT' });

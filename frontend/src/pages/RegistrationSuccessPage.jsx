@@ -6,7 +6,8 @@ import { formatDate } from '../utils/helpers';
 const RegistrationSuccessPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const data = location.state;
+  const state = location.state;
+  const data = state?.registration ?? state;
 
   useEffect(() => {
     // If no state data, redirect back to events
@@ -36,30 +37,38 @@ const RegistrationSuccessPage = () => {
 
         <div className="bg-slate-950 rounded-2xl p-6 border border-slate-800 mb-8">
           <div className="text-center mb-6 pb-6 border-b border-slate-800">
-            <h2 className="text-xl font-bold text-white mb-2">{data.event.title}</h2>
+            <h2 className="text-xl font-bold text-white mb-2">{data.event?.title ?? data.event ?? 'Your Event'}</h2>
             <div className="flex flex-col gap-2 text-sm text-slate-400 items-center">
-              <span className="flex items-center"><Calendar size={14} className="mr-2" /> {formatDate(data.event.date)} at {data.event.time}</span>
-              <span className="flex items-center"><MapPin size={14} className="mr-2" /> {data.event.venue}</span>
+              {(data.event?.date || data.date) && (
+                <span className="flex items-center"><Calendar size={14} className="mr-2" /> {formatDate(data.event?.date ?? data.date)} at {data.event?.time ?? data.time ?? ''}</span>
+              )}
+              {(data.event?.venue || data.venue) && (
+                <span className="flex items-center"><MapPin size={14} className="mr-2" /> {data.event?.venue ?? data.venue}</span>
+              )}
             </div>
           </div>
 
           <div className="flex justify-between items-center mb-6">
             <div className="text-sm">
               <p className="text-slate-500 mb-1">Attendee</p>
-              <p className="text-white font-medium flex items-center"><User size={14} className="mr-2 text-indigo-400" /> {data.student.name}</p>
+              <p className="text-white font-medium flex items-center"><User size={14} className="mr-2 text-indigo-400" /> {data.student?.name ?? data.studentName ?? 'You'}</p>
             </div>
             <div className="text-sm text-right">
               <p className="text-slate-500 mb-1">Ticket ID</p>
-              <p className="text-white font-mono bg-slate-800 px-2 py-1 rounded">{data.registrationId}</p>
+              <p className="text-white font-mono bg-slate-800 px-2 py-1 rounded">{data.registrationId ?? data._id ?? '—'}</p>
             </div>
           </div>
 
-          <div className="flex justify-center mb-2">
-            <div className="p-4 bg-white rounded-xl">
-              <img src={data.qrCode} alt="QR Code" className="w-40 h-40" />
-            </div>
-          </div>
-          <p className="text-xs text-center text-slate-500 mt-3">Scan at venue for entry</p>
+          {data.qrCode && (
+            <>
+              <div className="flex justify-center mb-2">
+                <div className="p-4 bg-white rounded-xl">
+                  <img src={data.qrCode} alt="QR Code" className="w-40 h-40" />
+                </div>
+              </div>
+              <p className="text-xs text-center text-slate-500 mt-3">Scan at venue for entry</p>
+            </>
+          )}
         </div>
 
         <div className="space-y-3">
