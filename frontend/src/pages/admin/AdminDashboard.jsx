@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Calendar, Activity, ClipboardList, Award, UsersRound } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import api from '../../services/api';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -9,22 +10,58 @@ export default function AdminDashboard() {
   });
   const [recentEvents, setRecentEvents] = useState([]);
   const [recentRegistrations, setRecentRegistrations] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Dummy fetch
-    setStats({
-      totalStudents: 1250, totalEvents: 45, activeEvents: 8,
-      totalRegistrations: 3420, activeClubs: 12, certificatesIssued: 2100
-    });
-    setRecentEvents([
-      { id: 1, title: 'Tech Symposium 2026', date: '2026-09-15', registrations: 120, status: 'Active' },
-      { id: 2, title: 'Cultural Fest', date: '2026-10-01', registrations: 450, status: 'Draft' },
-    ]);
-    setRecentRegistrations([
-      { id: 1, student: 'John Doe', event: 'Tech Symposium 2026', date: '2026-08-08', status: 'Confirmed' },
-      { id: 2, student: 'Jane Smith', event: 'Cultural Fest', date: '2026-08-07', status: 'Pending' },
-    ]);
+    const fetchAll = async () => {
+      setLoading(true);
+      try {
+        const [studentsRes, eventsRes, regsRes, clubsRes, certsRes] = await Promise.allSettled([
+          api.get('/users/students'),
+          api.get('/events?limit=100'),
+          api.get('/registrations/all'),
+          api.get('/clubs'),
+          api.get('/certificates?limit=1'),
+        ]);
+
+        const students = studentsRes.status === 'fulfilled' ? studentsRes.value.data?.data || [] : [];
+        const events = eventsRes.status === 'fulfilled' ? eventsRes.value.data?.data || [] : [];
+        const regs = regsRes.status === 'fulfilled' ? regsRes.value.data?.data || [] : [];
+        const clubs = clubsRes.status === 'fulfilled' ? clubsRes.value.data?.data || [] : [];
+        const certsTotal = certsRes.status === 'fulfilled' ? certsRes.value.data?.total || 0 : 0;
+
+        setStats({
+          totalStudents: students.length,
+          totalEvents: events.length,
+          activeEvents: events.filter(e => e.status === 'published').length,
+          totalRegistrations: regs.length,
+          activeClubs: clubs.filter(c => c.isActive !== false).length,
+          certificatesIssued: certsTotal,
+        });
+
+        setRecentEvents(events.slice(0, 5).map(e => ({
+          id: e._id, title: e.title,
+          date: e.date?.slice(0, 10) || '—',
+          registrations: e.currentRegistrations || 0,
+          status: e.status,
+        })));
+
+        setRecentRegistrations(regs.slice(0, 5).map(r => ({
+          id: r._id,
+          student: r.student?.name || '—',
+          event: r.event?.title || '—',
+          date: r.createdAt?.slice(0, 10) || '—',
+          status: r.status,
+        })));
+      } catch (err) {
+        console.error('Admin dashboard fetch error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAll();
   }, []);
+
 
   const barData = [
     { name: 'Mar', registrations: 400 }, { name: 'Apr', registrations: 300 },
