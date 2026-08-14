@@ -1,12 +1,12 @@
 import api from './api';
 
 export const register = async (eventId, data) => {
-    const response = await api.post(`/registrations/event/${eventId}`, data);
+    const response = await api.post('/registrations', { eventId, ...data });
     return response.data;
 };
 
 export const getMyRegistrations = async () => {
-    const response = await api.get('/registrations/me');
+    const response = await api.get('/registrations/my');
     return response.data;
 };
 

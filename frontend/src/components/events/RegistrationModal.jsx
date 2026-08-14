@@ -1,31 +1,36 @@
 import React, { useState } from 'react';
-import { X, Calendar, MapPin, Users } from 'lucide-react';
+import { X, Calendar, MapPin, Users, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import * as registrationService from '../../services/registrationService';
 
 export default function RegistrationModal({ event, isOpen, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [teamName, setTeamName] = useState('');
   const navigate = useNavigate();
 
   if (!isOpen || !event) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    // mock API call
-    setTimeout(() => {
-      setLoading(false);
+    setError('');
+    try {
+      const res = await registrationService.register(event._id, { teamName });
+      const registration = res.data;
       onClose();
-      const mockRegistration = {
-          event: { title: event.title, date: event.date, time: event.time, venue: event.venue },
-          studentName: '',
-          teamName,
-          registrationId: `REG-${Date.now()}`,
-          qrCode: null,
-        };
-        if (onSuccess) onSuccess(mockRegistration);
-        else navigate('/registration-success', { state: { registration: mockRegistration } });
-    }, 1000);
+      const successData = {
+        event: { title: event.title, date: event.date, time: event.time, venue: event.venue },
+        registrationId: registration.registrationId || registration._id,
+        qrCode: registration.qrCode || null,
+      };
+      if (onSuccess) onSuccess(successData);
+      else navigate('/registration-success', { state: { registration: successData } });
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -52,6 +57,13 @@ export default function RegistrationModal({ event, isOpen, onClose, onSuccess })
               </div>
             )}
             
+            {error && (
+              <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/20 p-3 rounded-lg text-sm text-red-400">
+                <AlertCircle size={16} />
+                {error}
+              </div>
+            )}
+
             <div className="bg-indigo-500/10 border border-indigo-500/20 p-4 rounded-lg text-sm text-indigo-300 mb-4">
               By confirming, you agree to abide by the rules and regulations of this event.
             </div>
