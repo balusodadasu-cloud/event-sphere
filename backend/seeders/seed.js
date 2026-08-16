@@ -2,7 +2,12 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const dotenv = require('dotenv');
 
-dotenv.config({ path: '../.env' });
+const path = require('path');
+const dns = require('dns');
+try { dns.setServers(['8.8.8.8', '8.8.4.4']); } catch (e) {}
+
+dotenv.config({ path: path.join(__dirname, '../.env') });
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 const User = require('../models/User');
 const Event = require('../models/Event');
@@ -17,7 +22,11 @@ const Bookmark = require('../models/Bookmark');
 const generateQR = require('../utils/generateQR');
 const { v4: uuidv4 } = require('uuid');
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/campus-connect';
+const MONGO_URI = process.env.MONGO_URI;
+if (!MONGO_URI) {
+  console.error('❌ MONGO_URI environment variable is missing!');
+  process.exit(1);
+}
 
 const seed = async () => {
   try {

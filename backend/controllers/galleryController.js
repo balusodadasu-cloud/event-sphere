@@ -13,10 +13,15 @@ exports.getGallery = async (req, res, next) => {
 
 exports.uploadGallery = async (req, res, next) => {
     try {
-        const { eventId, caption } = req.body;
+        const eventId = req.params.eventId || req.body.eventId;
+        const caption = req.body.caption || '';
         let images = [];
         
-        if (req.files) {
+        if (req.body.imageUrl || req.body.url) {
+            images.push({ url: req.body.imageUrl || req.body.url, caption });
+        }
+        
+        if (req.files && req.files.length > 0) {
             for (const file of req.files) {
                  try {
                      const result = await uploadImage(file.path);
@@ -44,6 +49,7 @@ exports.uploadGallery = async (req, res, next) => {
         next(error);
     }
 };
+
 
 exports.deleteGalleryImage = async (req, res, next) => {
     try {

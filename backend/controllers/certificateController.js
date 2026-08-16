@@ -30,6 +30,15 @@ exports.uploadCertificate = async (req, res, next) => {
     }
 };
 
+exports.getAllCertificates = async (req, res, next) => {
+    try {
+        const certificates = await Certificate.find().populate('student', 'name email department year').populate('event', 'title date').populate('issuedBy', 'name email').sort('-createdAt');
+        res.status(200).json({ success: true, count: certificates.length, data: certificates });
+    } catch (error) {
+        next(error);
+    }
+};
+
 exports.deleteCertificate = async (req, res, next) => {
     try {
         await Certificate.findByIdAndDelete(req.params.id);
@@ -38,3 +47,4 @@ exports.deleteCertificate = async (req, res, next) => {
         next(error);
     }
 };
+

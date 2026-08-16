@@ -11,7 +11,15 @@ router.route('/')
 router.route('/:eventId')
     .get(getGallery);
 
+router.route('/event/:eventId')
+    .get(getGallery)
+    .post(protect, authorize('admin', 'faculty', 'coordinator'), uploadMultiple, uploadGallery);
+
 router.route('/:eventId/:imageId')
     .delete(protect, authorize('admin', 'faculty', 'coordinator'), deleteGalleryImage);
 
+router.route('/event/:eventId/images/:imageId')
+    .delete(protect, authorize('admin', 'faculty', 'coordinator'), deleteGalleryImage);
+
 module.exports = router;
+

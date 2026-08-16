@@ -11,4 +11,9 @@ router.route('/:eventId')
     .get(getResults)
     .delete(protect, authorize('admin', 'faculty'), deleteResults);
 
+router.route('/event/:eventId')
+    .get(getResults)
+    .delete(protect, authorize('admin', 'faculty'), deleteResults);
+
 module.exports = router;
+
